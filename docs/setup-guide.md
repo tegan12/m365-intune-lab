@@ -7,19 +7,32 @@ the five screenshots the README expects. Budget ~1 evening (most of it is sign-u
 
 ## 1. Get a tenant with Intune (free)
 
-Pick **one**:
+**Recommended: the Microsoft Intune free trial.** It's a 30-day EMS trial (Microsoft Entra ID P1/P2 +
+Intune) that **auto-creates a brand-new tenant** for you — no existing account needed.
 
-| Option | Cost | Intune included? | Notes |
-|--------|------|------------------|-------|
-| **Microsoft 365 Developer Program** | Free | Yes (E5 sandbox) | Best option. Go to developer.microsoft.com → "Join" → set up the instant sandbox. Gives you 25 E5 licences incl. Intune. Eligibility can require a qualifying account — try this first. |
-| **Microsoft 365 Business Premium trial** | Free 30 days | Yes | Sign up at microsoft.com/microsoft-365/business → "Try free". Needs a card; cancel before day 30. |
-| **EMS E5 trial** | Free 90 days | Yes | Add on top of any free tenant — search "Enterprise Mobility + Security E5 trial". |
+> ⚠️ Two things to know up front (both normal):
+> - It asks for a **payment method**. The card is used for verification only and **isn't charged**
+>   unless you buy something. Cancel before day 30 and you pay nothing.
+> - **MFA is mandatory.** On your first admin sign-in you'll be prompted to set up multi-factor auth
+>   (authenticator app or SMS) — do it; it's required for all Intune tenants now.
 
-After sign-up you get a tenant like `yourname.onmicrosoft.com`. **Update `scripts/users.csv`** — swap the
-`contoso.onmicrosoft.com` domain for your real tenant domain before running `New-EntraUsersAndGroups.ps1`.
+Steps:
+1. Go to the **Intune Plan 1 trial** signup: https://go.microsoft.com/fwlink/?linkid=2019088
+2. Enter an email → **Set up account** (create a new account).
+3. Add name, phone, company name (anything, e.g. "Tegan IT Lab"), size, region (Ireland).
+4. Verify your phone with the texted code.
+5. Choose a **username + domain**: `admin` @ `teganitlab` → your tenant becomes
+   `admin@teganitlab.onmicrosoft.com` (pick your own; this is what you'll sign in with).
+6. Add the payment method (verification only). Finish — you'll get a confirmation email with your sign-in.
 
-> Assign yourself an Intune/EMS licence (Microsoft 365 admin center → Users → your account → Licences),
-> or device enrolment will fail.
+After sign-up you have a tenant like `yourname.onmicrosoft.com`. **Update `scripts/users.csv`** — swap the
+`contoso.onmicrosoft.com` domain for *your* tenant domain before running `New-EntraUsersAndGroups.ps1`.
+
+> The account that created the tenant is **Global Administrator** and already holds the trial licences,
+> so it can enrol devices and run the scripts. (Other options if this one doesn't suit: a **Microsoft
+> 365 Business Premium** 30-day trial also includes Intune; the old **Microsoft 365 Developer Program**
+> free E5 sandbox is, as of 2025–2026, **restricted to Visual Studio Pro/Enterprise subscribers** — skip
+> it unless you have one.)
 
 ---
 
@@ -37,18 +50,29 @@ admin. (If your tenant is brand-new, you may be asked to set up MFA — do it.)
 ## 3. Enrol a Windows device
 
 You need at least one device in Intune for the device screenshots. Easiest is a VM (the same VirtualBox
-host you used for the AD lab — a single Win11 VM at 2–3 GB RAM is fine on 8 GB):
+host you used for the AD lab — a single Win11 VM at 2–3 GB RAM is fine on 8 GB).
 
-1. Build a **Windows 11** VM (or reuse `CLIENT01` from the AD lab — but reset it so it's workgroup, not
-   domain-joined).
-2. In the VM: **Settings → Accounts → Access work or school → Connect → "Join this device to Microsoft
-   Entra ID"**.
-3. Sign in with one of the cloud users you created (or your admin) — the device auto-enrols into Intune.
-4. Wait a few minutes, then in the **Intune admin center** (intune.microsoft.com) → **Devices** the VM
-   appears. Run `Get-IntuneDeviceReport.ps1` and it shows up there too.
+**First, two one-time tenant settings (skip and enrolment silently fails):**
+- **Turn on automatic enrolment:** Entra admin center (entra.microsoft.com) → **Devices → Mobility (MDM
+  and MAM) → Microsoft Intune** → set **MDM user scope = All** → Save. (This is what makes an Entra-join
+  auto-enrol into Intune.)
+- **Make sure the account you'll sign in with has a licence:** Microsoft 365 admin center
+  (admin.microsoft.com) → **Users → Active users →** your account → **Licenses and apps** → tick the
+  Intune / EMS licence → Save. (The Global Admin that created the trial is usually already licensed.)
 
-> No VM spare? Even enrolling your own physical Windows PC works — but a throwaway VM is cleaner and
-> reversible.
+**Then enrol the VM:**
+1. Build a **Windows 11** VM (or reuse `CLIENT01` from the AD lab — but first remove it from the domain:
+   System → "Rename this PC (advanced)" → Member of **Workgroup** → reboot).
+2. In the VM: **Settings → Accounts → Access work or school → Connect →** under "Alternate actions" pick
+   **"Join this device to Microsoft Entra ID"**.
+3. Sign in with your licensed tenant account (e.g. `admin@yourtenant.onmicrosoft.com`). Complete MFA if
+   prompted. Accept → the device Entra-joins and auto-enrols into Intune.
+4. Reboot and sign in to Windows with that work account. Wait ~5–10 min for the first sync.
+5. In the **Intune admin center** (intune.microsoft.com) → **Devices → All devices** the VM appears.
+   Run `Get-IntuneDeviceReport.ps1` and it shows up there too.
+
+> No VM spare? Enrolling your own physical Windows PC also works — but a throwaway VM is cleaner and
+> reversible (you're handing device management to a 30-day trial tenant).
 
 ---
 
