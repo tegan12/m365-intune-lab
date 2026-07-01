@@ -34,6 +34,14 @@ param(
 . "$PSScriptRoot\Connect-IntuneGraph.ps1"
 Connect-IntuneGraph -Scopes 'DeviceManagementConfiguration.ReadWrite.All'
 
+# Idempotency: if a policy with this name already exists, don't create a duplicate.
+$existing = Get-MgDeviceManagementDeviceCompliancePolicy -All -ErrorAction SilentlyContinue |
+    Where-Object { $_.DisplayName -eq $DisplayName } | Select-Object -First 1
+if ($existing) {
+    Write-Warning "Compliance policy '$DisplayName' already exists ($($existing.Id)) - skipping (idempotent). Pass a different -DisplayName to create another."
+    return
+}
+
 # --- Policy definition -------------------------------------------------------
 # A Windows compliance policy MUST ship with at least one scheduledActionForRule, otherwise the
 # Graph create call fails. This one marks the device non-compliant 24h after it breaks a rule.

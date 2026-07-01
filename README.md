@@ -76,8 +76,8 @@ $g = (Get-MgGroup -Filter "displayName eq 'Intune-Lab-Users'").Id
 ---
 
 ## 📸 Screenshots
-> Captured against a Microsoft 365 Developer tenant with Intune. (Add yours after running the steps in
-> [docs/setup-guide.md](docs/setup-guide.md).)
+> Captured against a live Microsoft Intune tenant with a Windows 11 client enrolled via the steps in
+> [docs/setup-guide.md](docs/setup-guide.md).
 
 **Enrolled device in Intune** — a Windows 11 client enrolled and managed:
 

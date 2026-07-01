@@ -38,7 +38,7 @@ if (-not $devices) {
 
 $staleCutoff = (Get-Date).AddDays(-$StaleDays)
 
-$report = foreach ($d in $devices) {
+$report = @(foreach ($d in $devices) {
     [PSCustomObject]@{
         DeviceName     = $d.DeviceName
         User           = $d.UserPrincipalName
@@ -49,7 +49,7 @@ $report = foreach ($d in $devices) {
         StaleCheckIn   = ($d.LastSyncDateTime -lt $staleCutoff)
         Model          = "$($d.Manufacturer) $($d.Model)".Trim()
     }
-}
+})
 
 # --- Console report ----------------------------------------------------------
 Write-Host "`n=== Intune Managed Devices ($($report.Count)) ===" -ForegroundColor Cyan

@@ -24,6 +24,14 @@ param(
 . "$PSScriptRoot\Connect-IntuneGraph.ps1"
 Connect-IntuneGraph -Scopes 'DeviceManagementConfiguration.ReadWrite.All'
 
+# Idempotency: if a profile with this name already exists, don't create a duplicate.
+$existing = Get-MgDeviceManagementDeviceConfiguration -All -ErrorAction SilentlyContinue |
+    Where-Object { $_.DisplayName -eq $DisplayName } | Select-Object -First 1
+if ($existing) {
+    Write-Warning "Configuration profile '$DisplayName' already exists ($($existing.Id)) - skipping (idempotent). Pass a different -DisplayName to create another."
+    return
+}
+
 # --- Profile definition ------------------------------------------------------
 $body = @{
     '@odata.type'                    = '#microsoft.graph.windows10GeneralConfiguration'
